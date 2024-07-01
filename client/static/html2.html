@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мои Позиции</title>
+    <style>
+        .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        table {
+            width: 49%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="/static/html1.html">Открыть позицию</a>
+        <a href="/static/html2.html">Мои позиции</a>
+        <a href="/static/html3.html">Цены</a>
+    </div>
+    <div class="container">
+        <div>
+            <h2>Открытые заявки</h2>
+            <table id="openOrders">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ticker</th>
+                        <th>Volume</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Отменить</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Заявки будут загружены сюда -->
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h2>Открытые позиции / Баланс</h2>
+            <table id="openPositions">
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Volume</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Позиции будут загружены сюда -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Функция для отмены заказа и обновления страницы
+        function cancelOrder(orderId) {
+            $.ajax({
+                url: `/cancel/${orderId}`,
+                type: 'POST',
+                success: function(data) {
+                    // После успешного выполнения запроса обновляем страницу
+                    location.reload();
+                },
+                error: function(xhr, status, error) {
+                    // Обработка ошибок, если не удалось выполнить запрос
+                    console.error('Failed to cancel order:', error);
+                }
+            });
+        }
+
+        // Обработчик события изменения состояния чекбокса
+        $(document).on('change', '#openOrders input[type="checkbox"]', function() {
+            // Если чекбокс отмечен
+            if ($(this).is(':checked')) {
+                // Получаем идентификатор заказа из атрибута данных
+                var orderId = $(this).closest('tr').data('order-id');
+                // Вызываем функцию для отмены заказа
+                cancelOrder(orderId);
+            }
+        });
+
+        function fetchOrders() {
+            // AJAX запрос к серверу для получения открытых заявок
+            $.getJSON('/requests', function(data) {
+                var rows = data.map(function(order) {
+                    return `<tr data-order-id="${order.ID}"> <!-- Здесь устанавливаем data-order-id -->
+                        <td>${order.ID}</td>
+                        <td>${order.ticker}</td>
+                        <td>${order.volume}</td>
+                        <td>${order.type}</td>
+                        <td>${order.status}</td>
+                        <td><input type="checkbox"></td>
+                    </tr>`;
+                });
+                $('#openOrders tbody').html(rows.join(''));
+            });
+
+            // AJAX запрос к серверу для получения открытых позиций
+            $.getJSON('/positions', function(data) {
+                var rows = data.map(function(position) {
+                    return `<tr>
+                        <td>${position.ticker}</td>
+                        <td>${position.volume}</td>
+                        <td>${position.type}</td>
+                    </tr>`;
+                });
+                $('#openPositions tbody').html(rows.join(''));
+            });
+        }
+
+        $(document).ready(function() {
+            fetchOrders(); // Вызываем функцию при загрузке страницы
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Цены</title>
+    <style>
+        /* Базовые стили */
+        body { font-family: Arial, sans-serif; }
+        .tabs { margin-top: 10px; }
+        .tab-links { overflow: hidden; }
+        .tab-links a {
+            float: left;
+            padding: 10px;
+            text-decoration: none;
+            background: #f2f2f2;
+            color: black;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .tab-links a.active { background: #ddd; }
+        .tab-content { padding: 10px; border: 1px solid #ccc; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="/static/html1.html">Открыть позицию</a>
+        <a href="/static/html2.html">Мои позиции</a>
+        <a href="/static/html3.html">Цены</a>
+    </div>
+    <div class="tabs">
+        <div class="tab-links">
+            <a href="javascript:void(0);" class="active" data-target="RTS">RTS</a>
+            <a href="javascript:void(0);" data-target="IMOEX">IMOEX</a>
+            <a href="javascript:void(0);" data-target="Si">Si</a>
+        </div>
+        <div class="tab-content" id="RTS">
+            <h2>RTS</h2>
+            <!-- Таблица данных для SPFB.RTS -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Open</th>
+                        <th>High</th>
+                        <th>Low</th>
+                        <th>Close</th>
+                        <th>Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Данные для SPFB.RTS -->
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="IMOEX" style="display: none;">
+            <h2>IMOEX</h2>
+            <!-- Таблица данных для IMOEX -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Open</th>
+                        <th>High</th>
+                        <th>Low</th>
+                        <th>Close</th>
+                        <th>Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Данные для IMOEX -->
+                </tbody>
+            </table>
+        </div>
+        <div class="tab-content" id="Si" style="display: none;">
+            <h2>Si</h2>
+            <!-- Таблица данных для USD000UTSTOM -->
+            <table>
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Open</th>
+                        <th>High</th>
+                        <th>Low</th>
+                        <th>Close</th>
+                        <th>Volume</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Данные для USD000UTSTOM -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.tab-links a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const currentActive = document.querySelector('.tab-links a.active');
+                if (currentActive) currentActive.classList.remove('active');
+                this.classList.add('active');
+
+                const targetTab = document.getElementById(this.dataset.target);
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.style.display = 'none';
+                });
+                targetTab.style.display = 'block';
+
+                fetchDataForTab(this.dataset.target);
+            });
+        });
+
+        function fetchDataForTab(ticker) {
+            fetch(`../data/${ticker}`)
+                .then(response => response.json())
+                .then(data => updateTable(data, ticker))
+                .catch(error => console.error('Error loading the data:', error));
+        }
+
+        function convertUnixNanoToTimeString(unixNano) {
+            const date = new Date(unixNano / 1e6);
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const formattedHours = String(hours).padStart(2, '0');
+            const formattedMinutes = String(minutes).padStart(2, '0');
+            return `${formattedHours}:${formattedMinutes}`;
+        }
+
+        function updateTable(data, ticker) {
+            const tbody = document.querySelector(`#${ticker} tbody`);
+            tbody.innerHTML = '';// Очистить текущие строки
+
+            let counter = 1;
+            data.body.prices.forEach(item => {
+                const row = `<tr>
+            <td>12:0${counter++}</td>
+            <td>${item.open}</td>
+            <td>${item.high}</td>
+            <td>${item.low}</td>
+            <td>${item.close}</td>
+            <td>${item.vol}</td>
+        </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+    </script>
+
+</body>
+</html>

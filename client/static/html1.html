@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="application/x-www-form-urlencoded">
+    <title>Открыть позицию</title>
+    <style>
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="/static/html1.html">Открыть позицию</a>
+        <a href="/static/html2.html">Мои позиции</a>
+        <a href="/static/html3.html">Цены</a>
+    </div>
+    <div class="container">
+        <h2>Открыть позицию</h2>
+        <form id="positionForm">
+            <label for="amount">Сумма</label>
+            <input type="text" id="amount" name="amount" required>
+
+            <label for="price">Цена</label>
+            <input type="text" id="price" name="price" required>
+
+            <label for="instrument">Инструмент / тикер</label>
+            <select id="instrument" name="instrument" required>
+                <option value="Si">Si</option>
+                <option value="Other">Другое</option>
+            </select>
+
+            <button type="button" onclick="submitForm('buy')">Купить</button>
+            <button type="button" onclick="submitForm('sell')">Продать</button>
+        </form>
+    </div>
+
+    <script>
+        function submitForm(action) {
+            var formData = new URLSearchParams();
+            formData.append("amount", document.getElementById("amount").value);
+            formData.append("price", document.getElementById("price").value);
+            formData.append("instrument", document.getElementById("instrument").value);
+            formData.append("action", action);
+
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    window.location.href = '/static/html2.html';
+                })
+                .catch(error => {
+                    console.error('There was an error with the fetch operation:', error);
+                });
+        }
+
+
+    </script>
+
+</body>
+</html>
